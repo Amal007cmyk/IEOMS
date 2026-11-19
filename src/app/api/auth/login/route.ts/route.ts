@@ -1,7 +1,4 @@
-New-Item -ItemType Directory -Force -Path "src\app\api\auth\login"
-
-@'
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db";
 import { createAuditLog } from "@/lib/audit";
 
