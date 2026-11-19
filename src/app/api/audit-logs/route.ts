@@ -1,5 +1,7 @@
-export async function GET(req: NextRequest) {
-  try {
+import { NextRequest, NextResponse } from "next/server";
+export async function GET(req: NextRequest){
+try {
+
     const { searchParams } = new URL(req.url);
     const limit = Math.min(parseInt(searchParams.get("limit") || "100", 10), 500);
     const entityType = searchParams.get("entityType");
