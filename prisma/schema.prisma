@@ -1,0 +1,108 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         String    @default("CUSTOMER")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  orders       Order[]
+  auditLogs    AuditLog[]
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  sku         String      @unique
+  title       String
+  slug        String      @unique
+  description String
+  price       Float
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  inventory   Inventory?
+  orderItems  OrderItem[]
+}
+
+model Inventory {
+  id           String   @id @default(uuid())
+  productId    String   @unique
+  product      Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  availableQty Int
+  reservedQty  Int      @default(0)
+  version      Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Order {
+  id             String       @id @default(uuid())
+  orderNumber    String       @unique
+  userId         String
+  user           User         @relation(fields: [userId], references: [id])
+  status         String       @default("PENDING")
+  idempotencyKey String       @unique
+  totalAmount    Float
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  items          OrderItem[]
+  payments       Payment[]
+  shipment       Shipment?
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  unitPrice Float
+  createdAt DateTime @default(now())
+}
+
+model Payment {
+  id              String   @id @default(uuid())
+  orderId         String
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  paymentIntentId String   @unique
+  amount          Float
+  status          String   @default("PENDING")
+  provider        String   @default("MOCK_GATEWAY")
+  rawPayload      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Shipment {
+  id             String   @id @default(uuid())
+  orderId        String   @unique
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  trackingNumber String   @unique
+  carrier        String
+  status         String   @default("READY_FOR_PICKUP")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  entityType    String
+  entityId      String
+  action        String
+  previousState String?
+  newState      String?
+  actorRole     String
+  actorId       String?
+  metadata      String?
+  createdAt     DateTime @default(now())
+  user          User?    @relation(fields: [actorId], references: [id])
+}
