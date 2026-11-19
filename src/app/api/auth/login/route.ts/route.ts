@@ -88,4 +88,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
-'@ | Set-Content -LiteralPath "src\app\api\auth\login\route.ts" -Encoding utf8
